@@ -117,48 +117,46 @@ public:
 
 
 
-    static void PrintCurrentTime()
-    {
-        // Get the current time point
-        auto currentTime = std::chrono::system_clock::now();
+   static void PrintCurrentTime()
+{
+    // Get the current time point
+    auto currentTime = std::chrono::system_clock::now();
 
-        // Convert the time point to a time_t object
-        std::time_t currentTime_t;
-        time(&currentTime_t);
+    // Convert the time point to a time_t object
+    std::time_t currentTime_t = std::chrono::system_clock::to_time_t(currentTime);
 
-        // Convert the time_t to a tm structure
-        std::tm currentTimeInfo;
-        localtime_s(&currentTimeInfo, &currentTime_t);
+    // Convert the time_t to a tm structure
+    std::tm currentTimeInfo;
+    localtime_r(&currentTime_t, &currentTimeInfo);
 
-        // Print the current date and time
-        std::cout << "Current Date and Time: ";
-        std::cout << (currentTimeInfo.tm_year + 1900) << '-'
-            << (currentTimeInfo.tm_mon + 1) << '-'
-            << currentTimeInfo.tm_mday << ' '
-            << currentTimeInfo.tm_hour << ':'
-            << currentTimeInfo.tm_min << ':'
-            << currentTimeInfo.tm_sec << std::endl;
+    // Print the current date and time
+    std::cout << "Current Date and Time: ";
+    std::cout << (currentTimeInfo.tm_year + 1900) << '-'
+              << (currentTimeInfo.tm_mon + 1) << '-'
+              << currentTimeInfo.tm_mday << ' '
+              << currentTimeInfo.tm_hour << ':'
+              << currentTimeInfo.tm_min << ':'
+              << currentTimeInfo.tm_sec << std::endl;
+}
 
-    }
-    static std::string GetCurrentTime() {
-        // Get the current time point
-        auto currentTime = std::chrono::system_clock::now();
+static std::string GetCurrentTime() {
+    // Get the current time point
+    auto currentTime = std::chrono::system_clock::now();
 
-        // Convert the time point to a time_t object
-        std::time_t currentTime_t;
-        time(&currentTime_t);
+    // Convert the time point to a time_t object
+    std::time_t currentTime_t = std::chrono::system_clock::to_time_t(currentTime);
 
-        // Convert the time_t to a tm structure
-        std::tm currentTimeInfo;
-        localtime_s(&currentTimeInfo, &currentTime_t);
+    // Convert the time_t to a tm structure
+    std::tm currentTimeInfo;
+    localtime_r(&currentTime_t, &currentTimeInfo);
 
-        // Create a stringstream to format the date and time
-        std::stringstream ss;
-        ss << std::put_time(&currentTimeInfo, "%Y-%m-%d %H:%M:%S");
+    // Create a stringstream to format the date and time
+    std::stringstream ss;
+    ss << std::put_time(&currentTimeInfo, "%Y-%m-%d %H:%M:%S");
 
-        // Return the formatted date and time as a string
-        return ss.str();
-    }
+    // Return the formatted date and time as a string
+    return ss.str();
+}
 
 
     static void A5StreamCalcultionTime(int count)
