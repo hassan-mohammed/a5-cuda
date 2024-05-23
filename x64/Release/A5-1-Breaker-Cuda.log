@@ -1,0 +1,141 @@
+﻿  Compiling CUDA source file kernel.cu...
+  
+  D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.39.33519\bin\HostX64\x64" -x cu   -I"D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\packages\inteltbb.devel.win.2021.12.0.496\build\native\..\..\build\native\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\include"     --keep-dir x64\Release  -maxrregcount=0   --machine 64 --compile -cudart static    -DWIN32 -DWIN64 -DNDEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /O2 /FS   /MD " -Xcompiler "/Fdx64\Release\vc143.pdb" -o "D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\x64\Release\kernel.cu.obj" "D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\kernel.cu" 
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(80): warning #20092-D: a __device__ variable "_outStream" cannot be directly written in a host function
+            _outStream = outStream;
+            ^
+  
+  Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(81): warning #20092-D: a __device__ variable "_count" cannot be directly written in a host function
+           _count = count;
+           ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(94): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+            int countCurr = _count;
+                            ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(100): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+            RAind = RBind = RCind = _count;
+                                    ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(109): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRA[i + _count] = A5LZQueue._RAMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(110): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRB[i + _count] = A5LZQueue._RBMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(111): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRC[i + _count] = A5LZQueue._RCMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(115): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRB[i + _count] = A5LZQueue._RBMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(116): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRC[i + _count] = A5LZQueue._RCMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(120): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                A5LZQueue._tempRC[i + _count] = A5LZQueue._RCMain[i];
+                                      ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(127): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+            if (!(outA.Point == _outStream[_count - countCurr]))
+                                           ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(127): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+            if (!(outA.Point == _outStream[_count - countCurr]))
+                                ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(143): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+            if (!(outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]))
+                                                                  ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(143): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+            if (!(outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]))
+                                                       ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(158): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                                        ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(158): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                             ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(169): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                                        ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(169): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                             ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(181): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                                        ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(181): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                             ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(192): warning #20091-D: a __device__ variable "_count" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                                        ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(192): warning #20091-D: a __device__ variable "_outStream" cannot be directly read in a host function
+                    if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                                                             ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(225): warning #20091-D: a __device__ variable "oneCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRA[RAind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                          ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(225): warning #20091-D: a __device__ variable "zeroCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRA[RAind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                                            ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(229): warning #20091-D: a __device__ variable "uncertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRA[RAind - 1] = uncertainPoint;
+                                                   ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(238): warning #20091-D: a __device__ variable "oneCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRB[RBind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                          ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(238): warning #20091-D: a __device__ variable "zeroCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRB[RBind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                                            ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(242): warning #20091-D: a __device__ variable "uncertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRB[RBind - 1] = uncertainPoint;
+                                                   ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(253): warning #20091-D: a __device__ variable "oneCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRC[RCind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                          ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(253): warning #20091-D: a __device__ variable "zeroCertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRC[RCind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                                                                                            ^
+  
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\A5LogicalZonotopeQueue.cu(257): warning #20091-D: a __device__ variable "uncertainPoint" cannot be directly read in a host function
+                    A5LZQueue._tempRC[RCind - 1] = uncertainPoint;
+                                                   ^
+  
+  crt/host_defines.h is an internal header file and must not be used directly.  Please use cuda_runtime_api.h or cuda_runtime.h instead.
+  kernel.cu
+  tmpxft_00011aa4_00000000-7_kernel.cudafe1.cpp
+  crt/host_defines.h is an internal header file and must not be used directly.  Please use cuda_runtime_api.h or cuda_runtime.h instead.
+D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\A5-1-Breaker-Cuda\kernel.cu(602): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+     Creating library D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\x64\Release\A5-1-Breaker-Cuda.lib and object D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\x64\Release\A5-1-Breaker-Cuda.exp
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Generating code
+  All 0 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  A5-1-Breaker-Cuda.vcxproj -> D:\personal\logical zonotope\C++ Code\LogicaZonotope-A5-Breaker\A5-LogicalZonotope-C-PlusPlus\x64\Release\A5-1-Breaker-Cuda.exe
