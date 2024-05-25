@@ -231,7 +231,7 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
         while (index < threeBitsTableLength)
         {
            // testing code 
-            if (i == 0 && j == 0 && k == 1)
+            /*   if (i == 0 && j == 0 && k == 1)
             {
                 if (relativeIndex == 17)
                     index = 1;
@@ -251,10 +251,10 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
                     index = 3;
                 else if (relativeIndex == 12)
                     index = 1;
-             /*   else if (relativeIndex == 11)
-                    index = 4;*/
+             else if (relativeIndex == 11)
+                    index = 4;
 
-            }
+            }*/
 
             // if the relativeIndex is less than 4 then we are working on RB & RC only 
             if (relativeIndex < 4)
@@ -682,7 +682,7 @@ int main()
 
 
      //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-    FindA5Key << <112, 32 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,  d_outStream, count);
+    FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,  d_outStream, count);
     cudaDeviceSynchronize();
     // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
 
