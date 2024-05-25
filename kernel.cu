@@ -21,37 +21,37 @@ int RBkey[RBlength];
 int RCkey[RClength];
 
 
-__device__  __constant__ size_t perThreadMemorySize = (d_RAlength + d_RBlength + d_RClength) * sizeof(LightLogicalZonotope);
+__device__  __constant__ size_t perThreadMemorySize = (d_RAlength + d_RBlength + d_RClength) * sizeof(uint8_t);
 
 __constant__ __device__   int threeBitsTableLength = 8;
  __device__   bool isKeyFound = false;
 
-__constant__ __device__  LightLogicalZonotope tempPoint = LightLogicalZonotope{ 0, 1 };
 
-__global__ void  FindValidCompinationsGPU  (LightLogicalZonotope* d_AssumedBitstruthTableZonotope,int** outResult, int * outResultVector, int* d_outStream, int d_count)
+
+__global__ void  FindValidCompinationsGPU  (uint8_t* d_AssumedBitstruthTableZonotope,int** outResult, int * outResultVector, int* d_outStream, int d_count)
 {
     //int L = static_cast<int>(std::pow(2, noAssumedBits));
     int itdx = blockIdx.x * blockDim.x + threadIdx.x;
-
+   // uint8_t tempPoint = uint8_t{ 0, 1 };
     // int i = 0, j = 0, k = 1;
 
     int i = itdx & 0x1F;
     int j = (itdx >> 5) & 0x1F;
     int k = (itdx >> 10) & 0x1F;
 
-    LightLogicalZonotope tempRAtask[d_RAlength];
-    LightLogicalZonotope tempRBtask[d_RBlength];
-    LightLogicalZonotope tempRCtask[d_RClength];
+    uint8_t tempRAtask[d_RAlength];
+    uint8_t tempRBtask[d_RBlength];
+    uint8_t tempRCtask[d_RClength];
 
-    GenerateLogicalZonotopeRegisterDevice(tempRAtask, d_RAlength, &tempPoint);
-    GenerateLogicalZonotopeRegisterDevice(tempRBtask, d_RBlength, &tempPoint);
-    GenerateLogicalZonotopeRegisterDevice(tempRCtask, d_RClength, &tempPoint);
+    GenerateLogicalZonotopeRegisterDevice(tempRAtask, d_RAlength);
+    GenerateLogicalZonotopeRegisterDevice(tempRBtask, d_RBlength);
+    GenerateLogicalZonotopeRegisterDevice(tempRCtask, d_RClength);
 
     // Fill last noBits elements of tempRAtask with a row from AssumedBitstruthTableZonotope
-   /* FillLastNBitsWithRowDevice(tempRAtask, d_RAlength, d_AssumedBitstruthTableZonotope, i, d_noAssumedBits);
+    FillLastNBitsWithRowDevice(tempRAtask, d_RAlength, d_AssumedBitstruthTableZonotope, i, d_noAssumedBits);
     FillLastNBitsWithRowDevice(tempRBtask, d_RBlength, d_AssumedBitstruthTableZonotope, j, d_noAssumedBits);
-    FillLastNBitsWithRowDevice(tempRCtask, d_RClength, d_AssumedBitstruthTableZonotope, k, d_noAssumedBits);*/
-    for (size_t index = 0; index < d_noAssumedBits; index++)
+    FillLastNBitsWithRowDevice(tempRCtask, d_RClength, d_AssumedBitstruthTableZonotope, k, d_noAssumedBits);
+   /* for (size_t index = 0; index < d_noAssumedBits; index++)
     {
         tempRAtask[d_RAlength - index].Point = (i & (1 << index)) ? 1 : 0;
         tempRBtask[d_RBlength - index].Point = (j & (1 << index)) ? 1 : 0;
@@ -60,7 +60,7 @@ __global__ void  FindValidCompinationsGPU  (LightLogicalZonotope* d_AssumedBitst
         tempRBtask[d_RBlength - index].Generator = 0;
         tempRCtask[d_RClength - index].Generator = 0;
 
-    }
+    }*/
     // PrintRegistersDevice(tempRAtask, tempRBtask, tempRCtask);
      // Create A5LogicalZonotopeQueue with temporary arrays
     A5LogicalZonotopeQueue a5;
@@ -74,7 +74,7 @@ __global__ void  FindValidCompinationsGPU  (LightLogicalZonotope* d_AssumedBitst
     if (!isValid) isValid = IsValidKey(a5, 'D');
 
     if (isValid) {
-        //printf("{%d} valid com found {%d},{%d}{%d} \n", itdx, i, j, k);
+       // printf("{%d} valid com found {%d},{%d}{%d} \n", itdx, i, j, k);
 
         int ptr[3] = { i, j, k };
         outResult[itdx] = ptr;
@@ -91,7 +91,7 @@ __global__ void  FindValidCompinationsGPU  (LightLogicalZonotope* d_AssumedBitst
     }
     else
     {
-     //  printf("{%d} com is not valid {%d},{%d}{%d} \n", itdx, i, j, k);
+      // printf("{%d} com is not valid {%d},{%d}{%d} \n", itdx, i, j, k);
 
         outResult[itdx] = NULL;
 
@@ -107,8 +107,8 @@ __global__ void  FindValidCompinationsGPU  (LightLogicalZonotope* d_AssumedBitst
 }
 
 
-__global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightLogicalZonotope* __restrict__ AssumedBitstruthTableZonotope, 
-    const LightLogicalZonotope* __restrict__ threeBitsTruthTableZonotope, LightLogicalZonotope* __restrict__ d_memory, 
+__global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t* __restrict__ AssumedBitstruthTableZonotope,
+    const uint8_t* __restrict__ threeBitsTruthTableZonotope, 
     const int* __restrict__ d_outStream, int  d_count)
 {
     // printf("\n ******** GPU FindA5Key Started 0 ******** \n");
@@ -116,15 +116,21 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
     int itdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     int idx = 3 * itdx, jdx = 3 * itdx + 1, kdx = 3 * itdx + 2;
-    int i = validGuessConBag[idx];
-    int j = validGuessConBag[jdx];
-    int k = validGuessConBag[kdx];
+    int i = outResultVector[idx];
+    int j = outResultVector[jdx];
+    int k = outResultVector[kdx];
 
+    uint8_t threeBitsLocal[3 * 8];
+    for (size_t i = 0; i < 3*8; i++)
+    {
+        threeBitsLocal[i] = threeBitsTruthTableZonotope[i];
 
-    if ( kdx >= 43000) {
+    }
+
+ /*   if ( kdx >= 43000) {
         printf("Thread %d: Index out of bounds (idx: %d, jdx: %d, kdx: %d)\n", itdx, idx, jdx, kdx);
         return;
-    }
+    }*/
 
 
     // printf("\n ******** GPU FindA5Key Started 1 ******** \n");
@@ -138,25 +144,24 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
 
   
     //// Calculate memory offset for this thread
-    //LightLogicalZonotope* RAcurr = &d_memory[itdx * perThreadMemorySize / sizeof(LightLogicalZonotope)];
-    //LightLogicalZonotope* RBcurr = RAcurr + RAlength;
-    //LightLogicalZonotope* RCcurr = RBcurr + RBlength;
+    //uint8_t* RAcurr = &d_memory[itdx * perThreadMemorySize / sizeof(uint8_t)];
+    //uint8_t* RBcurr = RAcurr + RAlength;
+    //uint8_t* RCcurr = RBcurr + RBlength;
 
-  /*  extern __shared__ LightLogicalZonotope sharedMem[];
-    LightLogicalZonotope* RAcurr = sharedMem;
-    LightLogicalZonotope* RBcurr = &sharedMem[d_RAlength];
-    LightLogicalZonotope* RCcurr = &sharedMem[d_RAlength + d_RBlength];*/
+  /*  extern __shared__ uint8_t sharedMem[];
+    uint8_t* RAcurr = sharedMem;
+    uint8_t* RBcurr = &sharedMem[d_RAlength];
+    uint8_t* RCcurr = &sharedMem[d_RAlength + d_RBlength];*/
 
 
-    LightLogicalZonotope RAcurr[d_RAlength];
-    LightLogicalZonotope RBcurr[d_RBlength];
-    LightLogicalZonotope RCcurr[d_RClength];
+    uint8_t RAcurr[d_RAlength];
+    uint8_t RBcurr[d_RBlength];
+    uint8_t RCcurr[d_RClength];
 
-  //  LightLogicalZonotope  point = { 0,1 };
-                                                               
-    GenerateLogicalZonotopeRegisterDevice(RAcurr, d_RAlength, &tempPoint);
-    GenerateLogicalZonotopeRegisterDevice(RBcurr, d_RBlength, &tempPoint);
-    GenerateLogicalZonotopeRegisterDevice(RCcurr, d_RClength, &tempPoint);
+  //  uint8_t  point = { 0,1 };
+    GenerateLogicalZonotopeRegisterDevice(RAcurr, d_RAlength);
+    GenerateLogicalZonotopeRegisterDevice(RBcurr, d_RBlength);
+    GenerateLogicalZonotopeRegisterDevice(RCcurr, d_RClength);
 
     /*  printf("\n*** Printing initial values  \n ");
       PrintRegistersDevice(tempRAtask, tempRBtask, tempRCtask);*/
@@ -195,9 +200,9 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
     // Helper::PrintRegisters(tempRAtask, tempRBtask, tempRCtask);
 
     // //finalStep(tempRAtask, tempRBtask, tempRCtask, RCInitialIndex);
-    //LightLogicalZonotope* RAcurr = tempRAtask;
-    //LightLogicalZonotope* RBcurr = tempRBtask;
-    //LightLogicalZonotope* RCcurr = tempRCtask;
+    //uint8_t* RAcurr = tempRAtask;
+    //uint8_t* RBcurr = tempRBtask;
+    //uint8_t* RCcurr = tempRCtask;
 
 
     // std::string outputString;
@@ -226,30 +231,30 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
         while (index < threeBitsTableLength)
         {
            // testing code 
-            //if (i == 0 && j == 0 && k == 1)
-            //{
-            //    if (relativeIndex == 17)
-            //        index = 1;
-            //    else if (relativeIndex == 16)
-            //        index = 0;
-            //    else if (relativeIndex == 15)
-            //    {
-            //        // printf("\nrelativeIndex = 15");
-            //        index = 1;
-            //    }
-            //    else if (relativeIndex == 14)
-            //    {
-            //        // printf("\nrelativeIndex = 14");
-            //        index = 2;
-            //    }
-            //    else if (relativeIndex == 13)
-            //        index = 3;
-            //  /*  else if (relativeIndex == 12)
-            //        index = 1;
-            //    else if (relativeIndex == 11)
-            //        index = 4;*/
+            if (i == 0 && j == 0 && k == 1)
+            {
+                if (relativeIndex == 17)
+                    index = 1;
+                else if (relativeIndex == 16)
+                    index = 0;
+                else if (relativeIndex == 15)
+                {
+                    // printf("\nrelativeIndex = 15");
+                    index = 1;
+                }
+                else if (relativeIndex == 14)
+                {
+                    // printf("\nrelativeIndex = 14");
+                    index = 2;
+                }
+                else if (relativeIndex == 13)
+                    index = 3;
+                else if (relativeIndex == 12)
+                    index = 1;
+             /*   else if (relativeIndex == 11)
+                    index = 4;*/
 
-            //}
+            }
 
             // if the relativeIndex is less than 4 then we are working on RB & RC only 
             if (relativeIndex < 4)
@@ -316,15 +321,15 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
             return;
         if (QueueSize(indexQueue) != 0)
         {
-                RCcurr[relativeIndex] = tempPoint;
+                RCcurr[relativeIndex] = 2;
                 // index = indexQueue.Dequeue() + 1;
                 index = Dequeue(indexQueue) + 1;
 
                 if (relativeIndex > 0)
                 {
-                    RBcurr[relativeIndex - 1] = tempPoint;
+                    RBcurr[relativeIndex - 1] = 2;
                     if (relativeIndex > 3)
-                        RAcurr[relativeIndex - 4] = tempPoint;
+                        RAcurr[relativeIndex - 4] = 2;
                 }
                 relativeIndex++;
         }
@@ -367,7 +372,7 @@ __global__ void FindA5Key(const int* __restrict__ validGuessConBag, const LightL
 
 
 
-__global__ void test_finalstep(int* validGuess, LightLogicalZonotope* AssumedThTbl, LightLogicalZonotope* threeThTbl, int* d_outStream, int d_count)
+__global__ void test_finalstep(int* validGuess, uint8_t* AssumedThTbl, uint8_t* threeThTbl, int* d_outStream, int d_count)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     printf("%d, \n", idx);
@@ -375,14 +380,14 @@ __global__ void test_finalstep(int* validGuess, LightLogicalZonotope* AssumedThT
     printf("\n GPU Assumed BITS  \n");
     for (int i = 0; i < 160; i++)
     {
-        printf("{%d,%d} ,", AssumedThTbl[i].Point, AssumedThTbl[i].Generator);
+        printf("{%d,%d} ,", AssumedThTbl[i], AssumedThTbl[i]);
 
     }
 
     printf("\n GPU Three BITS  \n");
     for (int i = 0; i < 24; i++)
     {
-        printf("{%d,%d} ,", threeThTbl[i].Point, threeThTbl[i].Generator);
+        printf("{%d,%d} ,", threeThTbl[i], threeThTbl[i]);
 
     }
 
@@ -407,9 +412,9 @@ __global__ void test_finalstep(int* validGuess, LightLogicalZonotope* AssumedThT
 
 
 
-    /* LightLogicalZonotope* RA = GenerateLogicalZonotopeRegister(d_RAlength);
-     LightLogicalZonotope* RB = GenerateLogicalZonotopeRegister(d_RBlength);
-     LightLogicalZonotope* RC = GenerateLogicalZonotopeRegister(d_RClength);
+    /* uint8_t* RA = GenerateLogicalZonotopeRegister(d_RAlength);
+     uint8_t* RB = GenerateLogicalZonotopeRegister(d_RBlength);
+     uint8_t* RC = GenerateLogicalZonotopeRegister(d_RClength);
 
      FillLastNBitsWithRow(RA, d_RAlength, AssumedThTbl, 0, d_noAssumedBits);
      FillLastNBitsWithRow(RB, d_RBlength, AssumedThTbl, 0, d_noAssumedBits);
@@ -458,12 +463,12 @@ void Initialization()
 void FindValidCompinations(std::vector<int*>& validGuessConBag, int noAssumedBits)
 {
     int L = static_cast<int>(std::pow(2, noAssumedBits));
-    static LightLogicalZonotope* AssumedBitstruthTableZonotope = Helper::GetTruthTableZonotope(noAssumedBits);
+    static uint8_t* AssumedBitstruthTableZonotope = Helper::GetTruthTableZonotope(noAssumedBits);
 
 
-    LightLogicalZonotope RAinit[RAlength];
-    LightLogicalZonotope RBinit[RBlength];
-    LightLogicalZonotope RCinit[RClength];
+    uint8_t RAinit[RAlength];
+    uint8_t RBinit[RBlength];
+    uint8_t RCinit[RClength];
 
     Helper::GenerateLogicalZonotopeRegister(RAinit, RAlength);
     Helper::GenerateLogicalZonotopeRegister(RBinit, RBlength);
@@ -479,13 +484,13 @@ void FindValidCompinations(std::vector<int*>& validGuessConBag, int noAssumedBit
     //for (int index = 0; index < L; index++) {
     tbb::parallel_for(0, L, [&](int index) {
         // Create temporary copies of RA, RB, RC
-    /*    LightLogicalZonotope tempRAtask[RAlength];
-        LightLogicalZonotope tempRBtask[RAlength];
-        LightLogicalZonotope tempRCtask[RAlength];*/
+    /*    uint8_t tempRAtask[RAlength];
+        uint8_t tempRBtask[RAlength];
+        uint8_t tempRCtask[RAlength];*/
 
-        LightLogicalZonotope tempRAtask[RAlength];
-        LightLogicalZonotope tempRBtask[RBlength];
-        LightLogicalZonotope tempRCtask[RClength];
+        uint8_t tempRAtask[RAlength];
+        uint8_t tempRBtask[RBlength];
+        uint8_t tempRCtask[RClength];
 
         // Copy values from RA, RB, RC to temporary arrays
         std::copy(RAinit, RAinit + RAlength, tempRAtask);
@@ -581,10 +586,10 @@ int main()
     //
     
       // Create a thread that runs the printCurrentDateTime function
-    std::thread backgroundThread(Helper::printCurrentDateTime);
+  //  std::thread backgroundThread(Helper::printCurrentDateTime);
 
     // Detach the thread so it runs independently
-    backgroundThread.detach();
+  //  backgroundThread.detach();
 
     Initialization();
   
@@ -636,30 +641,40 @@ int main()
     std::cout << " \n======== GPU Section: =========== " << std::endl;
 
 
-    LightLogicalZonotope* d_threeBitsTruthTableZonotope = NULL;
+    uint8_t* d_threeBitsTruthTableZonotope = NULL;
     int* d_validGuessConBag = NULL;
     int* d_outStream = NULL;
-    LightLogicalZonotope* d_AssumedBitstruthTableZonotope = NULL;
-    LightLogicalZonotope* AssumedBitstruthTableZonotope = Helper::GetTruthTableZonotope(noAssumedBits);
+    uint8_t* d_AssumedBitstruthTableZonotope = NULL;
+    uint8_t* AssumedBitstruthTableZonotope = Helper::GetTruthTableZonotope(noAssumedBits);
    
-    AllocateGPUMemory( d_outStream, d_AssumedBitstruthTableZonotope, 
-        AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, 
-        d_validGuessConBag, validGuessVectorSize,  validGuessVector);
+    AllocateGPUMemory(d_outStream, d_AssumedBitstruthTableZonotope,
+        AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,
+        d_validGuessConBag, validGuessVectorSize, validGuessVector);
 
-    
     /*******  Find valid combinations section *******/
+    /*std::vector<int> validItemsVector;*/
     LaunchFindValidCompinationsKernel(d_AssumedBitstruthTableZonotope, d_outStream);
-
+    /*int validItemsVectorSize = validItemsVector.size();
+    std::sort(validGuessConBag.begin(), validGuessConBag.end(), Helper::compareIntArrays);*/
 
     /******* FindA5Key Section *******/
-    int numThreads = 5;
+ /*   int numThreads = 5;
+    cudaError_t cuda_err;
 
+    cuda_err = cudaMalloc((void**)&d_validGuessConBag, validItemsVectorSize * sizeof(int));
+    if (cuda_err != cudaSuccess) {
+        std::cout << "Error Allocating the d_validGuessConBag.\n";
+    }
 
- //   size_t sharedMemSize = (d_RAlength + d_RBlength + d_RClength) * sizeof(LightLogicalZonotope);
+    cuda_err = cudaMemcpy(d_validGuessConBag, validItemsVector.data(), validItemsVectorSize * sizeof(int), cudaMemcpyHostToDevice);
+    if (cuda_err != cudaSuccess) {
+        std::cout << "Error Copying the d_validGuessConBag.\n";
+    }*/
 
-    size_t totalMemorySize = numThreads * (RAlength + RBlength + RClength) * sizeof(LightLogicalZonotope);
-    LightLogicalZonotope* d_memory;
-    cudaMalloc(&d_memory, totalMemorySize);
+ /*   size_t sharedMemSize = (d_RAlength + d_RBlength + d_RClength) * sizeof(uint8_t);
+    size_t totalMemorySize = numThreads * (RAlength + RBlength + RClength) * sizeof(uint8_t);
+    uint8_t* d_memory;
+    cudaMalloc(&d_memory, totalMemorySize);*/
     
     std::cout << "\n[GPU call] FindA5Key " << " Started  @  " << Helper::GetCurrentTime() << std::endl;
 
@@ -667,7 +682,7 @@ int main()
 
 
      //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-    FindA5Key << <1, 10 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_memory, d_outStream, count);
+    FindA5Key << <112, 32 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,  d_outStream, count);
     cudaDeviceSynchronize();
     // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
 
@@ -677,33 +692,33 @@ int main()
 
 
 
-    /* LightLogicalZonotope* d_tempRA = NULL;
-     LightLogicalZonotope* d_tempRB = NULL;
-     LightLogicalZonotope* d_tempRC = NULL;
+    /* uint8_t* d_tempRA = NULL;
+     uint8_t* d_tempRB = NULL;
+     uint8_t* d_tempRC = NULL;
 
-     cuda_err = cudaMalloc((void**)&d_tempRA, sizeof(LightLogicalZonotope) * RAlength);
+     cuda_err = cudaMalloc((void**)&d_tempRA, sizeof(uint8_t) * RAlength);
      if (cuda_err != cudaSuccess) {
          std::cout << "Error Allocating the d_tempRA.\n";
      }
-     cuda_err = cudaMalloc((void**)&d_tempRB, sizeof(LightLogicalZonotope) * RBlength);
+     cuda_err = cudaMalloc((void**)&d_tempRB, sizeof(uint8_t) * RBlength);
      if (cuda_err != cudaSuccess) {
          std::cout << "Error Allocating the RB.\n";
      }
-     cuda_err = cudaMalloc((void**)&d_tempRC, sizeof(LightLogicalZonotope) * RClength);
+     cuda_err = cudaMalloc((void**)&d_tempRC, sizeof(uint8_t) * RClength);
      if (cuda_err != cudaSuccess) {
          std::cout << "Error Allocating the RC.\n";
      }*/
 
      //// Copy the data to GPU
-     //cuda_err = cudaMemcpy(d_tempRA, tempRAtask, sizeof(LightLogicalZonotope) * RAlength, cudaMemcpyHostToDevice);
+     //cuda_err = cudaMemcpy(d_tempRA, tempRAtask, sizeof(uint8_t) * RAlength, cudaMemcpyHostToDevice);
      //if (cuda_err != cudaSuccess) {
      //    std::cout << "Error Copying the RA.\n";
      //}
-     //cuda_err = cudaMemcpy(d_tempRB, tempRBtask, sizeof(LightLogicalZonotope) * RBlength, cudaMemcpyHostToDevice);
+     //cuda_err = cudaMemcpy(d_tempRB, tempRBtask, sizeof(uint8_t) * RBlength, cudaMemcpyHostToDevice);
      //if (cuda_err != cudaSuccess) {
      //    std::cout << "Error Copying the RA.\n";
      //}
-     //cuda_err = cudaMemcpy(d_tempRC, tempRCtask, sizeof(LightLogicalZonotope) * RClength, cudaMemcpyHostToDevice);
+     //cuda_err = cudaMemcpy(d_tempRC, tempRCtask, sizeof(uint8_t) * RClength, cudaMemcpyHostToDevice);
      //if (cuda_err != cudaSuccess) {
      //    std::cout << "Error Copying the RA.\n";
      //}
@@ -736,14 +751,15 @@ int main()
     return 0;
 }
 
-void LaunchFindValidCompinationsKernel(LightLogicalZonotope* d_AssumedBitstruthTableZonotope, int* d_outStream)
-{
 
+void LaunchFindValidCompinationsKernel( uint8_t* d_AssumedBitstruthTableZonotope, int* d_outStream)
+{
+    std::vector<int> validItemsVector;
+    int* outResultVector;
     int noPossibilities = static_cast<int>(std::pow(2, noAssumedBits));
     int totalIterations = noPossibilities * noPossibilities * noPossibilities;
 
     int** outResult; // Device pointer to store output
-    int* outResultVector;
     // Allocate memory on the device to store the output
     cudaMalloc((void**)&outResult, totalIterations * sizeof(int*));
     cudaMalloc((void**)&outResultVector,3* totalIterations * sizeof(int));
@@ -778,7 +794,6 @@ void LaunchFindValidCompinationsKernel(LightLogicalZonotope* d_AssumedBitstruthT
     std::vector<int> h_outResultVector(3*totalIterations);
     cudaMemcpy(h_outResultVector.data(), outResultVector, 3* totalIterations * sizeof(int), cudaMemcpyDeviceToHost);
 
-    std::vector<int> validItemsVector;
     
     for (int i = 0; i < h_outResultVector.size(); i++) {
         if (h_outResultVector[i] != -1) {
@@ -787,10 +802,50 @@ void LaunchFindValidCompinationsKernel(LightLogicalZonotope* d_AssumedBitstruthT
         }
     }
     std::cout << "Total number of valid items VECTOR: " << validItemsVector.size()/3 << std::endl;
-
-
+    
+//    std::vector<int*> validGuessArrays(validItemsVector.size() / 3);
+//    int* tmpGuess;
+//    for (size_t i = 0; i < validItemsVector.size() / 3;)
+//    {
+//        tmpGuess = new int [3]{ validItemsVector[i],validItemsVector[i + 1], validItemsVector[i + 2] };
+//        validGuessArrays.push_back(tmpGuess);
+//        i = i + 3;
+//    }
+//
+////    std::sort(validGuessArrays.begin(), validGuessArrays.end(), Helper::compareIntArrays);
+//
+//
+//    // Calculate the number of groups
+//    int numGroups = validItemsVector.size() / 3;
+//
+//    // Initialize the indices vector
+//    std::vector<int> indices(numGroups);
+//    for (int i = 0; i < numGroups; ++i) {
+//        indices[i] = i * 3;
+//    }
+//
+//    // Sort the indices based on the comparison of groups
+//    std::sort(indices.begin(), indices.end(),
+//        [&validItemsVector](int a, int b) {
+//            return Helper::compareGroups(validItemsVector, a, b);
+//        });
+//
+//    // Create a new vector for sorted elements
+//    std::vector<int> sortedVector(validItemsVector.size());
+//    for (size_t i = 0; i < indices.size(); ++i) {
+//        sortedVector[i * 3] = validItemsVector[indices[i]];
+//        sortedVector[i * 3 + 1] = validItemsVector[indices[i] + 1];
+//        sortedVector[i * 3 + 2] = validItemsVector[indices[i] + 2];
+//    }
+//
+//    // Print the sorted results
+//    for (size_t i = 0; i < sortedVector.size(); i += 3) {
+//        std::cout << sortedVector[i] << " "
+//            << sortedVector[i + 1] << " "
+//            << sortedVector[i + 2] << std::endl;
+//    }
 }
-
+//FindValidCompinationsCPU 
 void FindValidCompinationsCPU(std::vector<int*>& validGuessConBag)
 {
 
@@ -807,21 +862,22 @@ void FindValidCompinationsCPU(std::vector<int*>& validGuessConBag)
 
     std::cout << "Total Number of Guesses: " << validGuessConBag.size() << std::endl;
 
-   // std::sort(validGuessConBag.begin(), validGuessConBag.end(), Helper::compareIntArrays);
+   //std::sort(validGuessConBag.begin(), validGuessConBag.end(), Helper::compareIntArrays);
 
-    /*  for (const auto& guess : validGuessConBag) {
-    std::cout << "Valid Guess: {" << guess[0] << ", " << guess[1] << ", " << guess[2] << "}" << std::endl;
-    }*/
+   // for (const auto& guess : validGuessConBag) {
+   // std::cout << "Valid Guess: {" << guess[0] << ", " << guess[1] << ", " << guess[2] << "}" << std::endl;
+   // }
 
 }
 
-void AllocateGPUMemory( int*& d_outStream, LightLogicalZonotope*& d_AssumedBitstruthTableZonotope, LightLogicalZonotope* AssumedBitstruthTableZonotope, 
-    LightLogicalZonotope*& d_threeBitsTruthTableZonotope, int*& d_validGuessConBag, int validGuessVectorSize,  int* validGuessVector)
+
+void AllocateGPUMemory(int*& d_outStream, uint8_t*& d_AssumedBitstruthTableZonotope, uint8_t* AssumedBitstruthTableZonotope,
+    uint8_t*& d_threeBitsTruthTableZonotope, int*& d_validGuessConBag, int validGuessVectorSize, int* validGuessVector)
 {
     cudaError_t cuda_err;
     int assumedBitsTruthTblLen = static_cast<int>(std::pow(2, noAssumedBits)) * noAssumedBits;
     int threeBitsTruthTblLen = static_cast<int>(std::pow(2, 3)) * 3;
-    LightLogicalZonotope* threeBitsTruthTableZonotope = Helper::GetTruthTableZonotope(1 * 3);
+    uint8_t* threeBitsTruthTableZonotope = Helper::GetTruthTableZonotope(1 * 3);
 
 
     cuda_err = cudaMalloc((void**)&d_outStream, sizeof(int) * count);
@@ -833,16 +889,16 @@ void AllocateGPUMemory( int*& d_outStream, LightLogicalZonotope*& d_AssumedBitst
         std::cout << "Error Copying the d_outStream.\n";
     }
 
-    cuda_err = cudaMalloc((void**)&d_AssumedBitstruthTableZonotope, sizeof(LightLogicalZonotope) * assumedBitsTruthTblLen);
+    cuda_err = cudaMalloc((void**)&d_AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen);
     if (cuda_err != cudaSuccess) {
         std::cout << "Error Allocating the d_AssumedBitstruthTableZonotope.\n";
     }
-    cuda_err = cudaMemcpy(d_AssumedBitstruthTableZonotope, AssumedBitstruthTableZonotope, sizeof(LightLogicalZonotope) * assumedBitsTruthTblLen, cudaMemcpyHostToDevice);
+    cuda_err = cudaMemcpy(d_AssumedBitstruthTableZonotope, AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen, cudaMemcpyHostToDevice);
     if (cuda_err != cudaSuccess) {
         std::cout << "Error Copying the d_AssumedBitstruthTableZonotope.\n";
     }
 
-    cuda_err = cudaMalloc((void**)&d_threeBitsTruthTableZonotope, sizeof(LightLogicalZonotope) * threeBitsTruthTblLen);
+    cuda_err = cudaMalloc((void**)&d_threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen);
     if (cuda_err != cudaSuccess) {
         std::cout << "Error Allocating the d_threeBitsTruthTableZonotope.\n";
     }
@@ -856,7 +912,7 @@ void AllocateGPUMemory( int*& d_outStream, LightLogicalZonotope*& d_AssumedBitst
 
 
     //// Copy the data to GPU
-    cuda_err = cudaMemcpy(d_threeBitsTruthTableZonotope, threeBitsTruthTableZonotope, sizeof(LightLogicalZonotope) * threeBitsTruthTblLen, cudaMemcpyHostToDevice);
+    cuda_err = cudaMemcpy(d_threeBitsTruthTableZonotope, threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen, cudaMemcpyHostToDevice);
     if (cuda_err != cudaSuccess) {
         std::cout << "Error Copying the d_threeBitsTruthTableZonotope.\n";
     }
@@ -897,7 +953,7 @@ void RunTestCases()
     TestCases::TestAnd();
     TestCases::TestOr();
     TestCases::TestNot();
-     TestCases::testReverseQueueSt();
+   //  TestCases::testReverseQueueSt();
 
 
     int n = 5;
@@ -908,6 +964,6 @@ void RunTestCases()
     delete[] truthTable;
 
     // Generate and print the logical zonotope truth table
-    LightLogicalZonotope* truthTableZonotope = Helper::GetTruthTableZonotope(n);
+    uint8_t* truthTableZonotope = Helper::GetTruthTableZonotope(n);
     // Helper::PrintTruthTableZonotope(truthTableZonotope, n);
 }

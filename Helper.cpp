@@ -137,6 +137,7 @@ public:
               << currentTimeInfo.tm_hour << ':'
               << currentTimeInfo.tm_min << ':'
               << currentTimeInfo.tm_sec << std::endl;
+
 }
 
 static std::string GetCurrentTime() {
@@ -224,7 +225,7 @@ static std::string GetCurrentTime() {
 
 
     // Function to get the truth table zonotope with the specified number of bits
-    static LightLogicalZonotope* GetTruthTableZonotope(int noBits)//, int& length) 
+    static uint8_t* GetTruthTableZonotope(int noBits)//, int& length) 
     {
         int L = static_cast<int>(std::pow(2, noBits));
 
@@ -233,12 +234,12 @@ static std::string GetCurrentTime() {
         truthTable = GetTruthTable(noBits);
 
         // Create the truth table zonotope as a dynamic array
-        LightLogicalZonotope* truthTableZonotope = new LightLogicalZonotope[L * noBits];
+        uint8_t* truthTableZonotope = new uint8_t[L * noBits];
        // length = L * noBits;
 
         for (int i = 0; i < L; ++i) {
             for (int j = 0; j < noBits; ++j) {
-                truthTableZonotope[i * noBits + j] = (truthTable[i * noBits + j] == 0) ? zeroPoint : onePoint;
+                truthTableZonotope[i * noBits + j] = truthTable[i * noBits + j];
             }
         }
 
@@ -260,7 +261,7 @@ static std::string GetCurrentTime() {
         }
     }
 
-   static void FillLastNBitsWithRow(LightLogicalZonotope* reg, const int regLength, const LightLogicalZonotope* truthTableZonotope, int rowNo, int noBits) {
+   static void FillLastNBitsWithRow(uint8_t* reg, const int regLength, const uint8_t* truthTableZonotope, int rowNo, int noBits) {
         int startIndex = regLength - noBits;
 
         for (int i = 0; i < noBits; i++) {
@@ -284,9 +285,9 @@ static std::string GetCurrentTime() {
 
        return reg;
    }
-  static LightLogicalZonotope* GenerateLogicalZonotopeRegister(LightLogicalZonotope* reg, int length) {
+  static uint8_t* GenerateLogicalZonotopeRegister(uint8_t* reg, int length) {
       for (int i = 0; i < length; i++) {
-          reg[i] = LightLogicalZonotope{ 0, 1 };
+          reg[i] =2;
       }
 
       return reg;
@@ -301,6 +302,18 @@ static std::string GetCurrentTime() {
           return arr1[1] < arr2[1];
       // If both the first and second elements are equal, compare based on the third element
       return arr1[2] < arr2[2];
+  }
+
+  static bool compareGroups(const std::vector<int>& vec, int i, int j) {
+      if (vec[i] != vec[j]) {
+          return vec[i] < vec[j];
+      }
+      else if (vec[i + 1] != vec[j + 1]) {
+          return vec[i + 1] < vec[j + 1];
+      }
+      else {
+          return vec[i + 2] < vec[j + 2];
+      }
   }
 
 

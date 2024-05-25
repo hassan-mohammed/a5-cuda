@@ -1,5 +1,5 @@
-#define MAX_STACK_SIZE 64
-#define CountConst 64
+#define MAX_STACK_SIZE 100
+#define _count 64
 
 
 #include <iostream>
@@ -27,14 +27,14 @@ struct A5LogicalZonotopeQueue {
 
     int countCurr;
 
-    LightLogicalZonotope* _RAMain;
-    LightLogicalZonotope* _RBMain;
-    LightLogicalZonotope* _RCMain;
+    uint8_t* _RAMain;
+    uint8_t* _RBMain;
+    uint8_t* _RCMain;
     bool* clkCondArray;
 
-    LightLogicalZonotope _tempRA[d_RAlength + CountConst];
-    LightLogicalZonotope _tempRB[d_RAlength + CountConst];
-    LightLogicalZonotope _tempRC[d_RClength + CountConst];
+    uint8_t _tempRA[d_RAlength + _count];
+    uint8_t _tempRB[d_RAlength + _count];
+    uint8_t _tempRC[d_RClength + _count];
 
     StackItem _stack[MAX_STACK_SIZE];
     StackItem* dctItemPointer;
@@ -48,17 +48,15 @@ struct A5LogicalZonotopeQueue {
 };
 
 
-static __device__ __host__  void XorDevice(const LightLogicalZonotope& zonotope1, const LightLogicalZonotope& zonotope2, const LightLogicalZonotope& zonotope3, LightLogicalZonotope& zonotopeOut) {
-    if (zonotope3.Generator != 0)
-        zonotopeOut.Generator = 1;
-    else if (zonotope2.Generator != 0)
-        zonotopeOut.Generator = 1;
-    else if (zonotope1.Generator != 0)
-        zonotopeOut.Generator = 1;
+static __device__ __host__ void XorDevice(const uint8_t& zonotope1, const uint8_t& zonotope2, const uint8_t& zonotope3, uint8_t& zonotopeOut) {
+    if (zonotope2 == 2 || zonotope3 == 2 || zonotope1 == 2)
+        zonotopeOut = 2;
+
     else {
-        zonotopeOut.Generator = 0;
-        zonotopeOut.Point = zonotope1.Point ^ zonotope2.Point ^ zonotope3.Point;
+
+        zonotopeOut = zonotope1 ^ zonotope2 ^ zonotope3;
     }
+
 }
 
 __device__ __host__ static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, char clkCond);
@@ -67,18 +65,13 @@ __device__ __host__ static void MajorityFunction(A5LogicalZonotopeQueue& A5LZQue
 __device__ __host__ static void AddNewItem(A5LogicalZonotopeQueue& A5LZQueue, int& countCurr, int&  RAind, int& RBind, int& RCind)        ;
 
 
-static __device__   LightLogicalZonotope uncertainPoint = LightLogicalZonotope{ 0, 1 };
-static __device__   LightLogicalZonotope oneCertainPoint = LightLogicalZonotope{ 1, 0 };
-static __device__   LightLogicalZonotope zeroCertainPoint = LightLogicalZonotope{ 0, 0 };
-const static __device__    int* _outStream;
-static __device__   int _count;
+__device__ __constant__ const  uint8_t _outStream[_count] = { 1,0,0,0,0,1,1,0,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,0,0,1,1,0,1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,0,0,0,1 };
+
 
 
 
     // Assuming FindA5KeyLightZT class is defined appropriately
-__device__ __host__ static void InitializeA5LogicalZonotopeQueue(A5LogicalZonotopeQueue* A5LZQueue, LightLogicalZonotope* RA, LightLogicalZonotope* RB, LightLogicalZonotope* RC, const int* outStream, int count) {
-        _outStream = outStream;
-       _count = count;
+__device__ __host__ static void InitializeA5LogicalZonotopeQueue(A5LogicalZonotopeQueue* A5LZQueue, uint8_t* RA, uint8_t* RB, uint8_t* RC, const int* outStream, int count) {
        
        A5LZQueue->_RAMain = RA;
        A5LZQueue->_RBMain = RB;
@@ -92,7 +85,7 @@ __device__ __host__ static void InitializeA5LogicalZonotopeQueue(A5LogicalZonoto
 __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, char clkCond) {
         A5LZQueue.stackIndex = 0;
         int countCurr = _count;
-        LightLogicalZonotope  outA;
+        uint8_t  outA;
 
 
         int RAind, RBind, RCind;
@@ -122,9 +115,9 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
         ///////////// first round ////////////
 
         // calculating the output
-        outA.Generator = 1;
+        outA = 2;
         XorDevice(A5LZQueue._tempRA[RAind + 18], A5LZQueue._tempRB[RBind + 21], A5LZQueue._tempRC[RCind + 22], outA);
-        if (!(outA.Point == _outStream[_count - countCurr]))
+        if (!(outA == _outStream[0]))
             return false;
 
         // calculating the feedback bits
@@ -140,7 +133,7 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
         countCurr--;
         // calculating the output
         XorDevice(A5LZQueue._tempRA[RAind + 18], A5LZQueue._tempRB[RBind + 21], A5LZQueue._tempRC[RCind + 22], outA);
-        if (!(outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]))
+        if (!( outA == _outStream[_count - countCurr]))
             return false;
 
         // calculate the majority bits for all registers using majority function
@@ -155,7 +148,7 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
                 A5LZQueue.clkCondArray[0] = false;
                 clkCond = 'A';
                 XorDevice(A5LZQueue._tempRA[RAind + 17], A5LZQueue._tempRB[RBind + 20], A5LZQueue._tempRC[RCind + 21], outA);
-                if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                if (outA== 2  || outA == _outStream[_count - countCurr]) {
                     ClkRegistersNew(A5LZQueue, clkCond, RAind, RBind, RCind);
                     AddNewItem(A5LZQueue, countCurr, RAind, RBind, RCind);
                     continue;
@@ -166,7 +159,7 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
                 A5LZQueue.clkCondArray[1] = false;
                 clkCond = 'B';
                 XorDevice(A5LZQueue._tempRA[RAind + 17], A5LZQueue._tempRB[RBind + 20], A5LZQueue._tempRC[RCind + 22], outA);
-                if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                if (outA== 2  || outA == _outStream[_count - countCurr]) {
                     ClkRegistersNew(A5LZQueue, clkCond, RAind, RBind, RCind);
                     AddNewItem(A5LZQueue, countCurr, RAind, RBind, RCind);
                     continue;
@@ -178,7 +171,7 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
 
                 XorDevice(A5LZQueue._tempRA[RAind + 17], A5LZQueue._tempRB[RBind + 21], A5LZQueue._tempRC[RCind + 21], outA);
 
-                if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                if (outA== 2  || outA == _outStream[_count - countCurr]) {
                     ClkRegistersNew(A5LZQueue, clkCond, RAind, RBind, RCind);
                     AddNewItem(A5LZQueue, countCurr, RAind, RBind, RCind);
                     continue;
@@ -189,7 +182,7 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
                 clkCond = 'D';
 
                 XorDevice(A5LZQueue._tempRA[RAind + 18], A5LZQueue._tempRB[RBind + 20], A5LZQueue._tempRC[RCind + 21], outA);
-                if (outA.Generator != 0 || outA.Point == _outStream[_count - countCurr]) {
+                if (outA== 2  || outA == _outStream[_count - countCurr]) {
                     ClkRegistersNew(A5LZQueue, clkCond, RAind, RBind, RCind);
                     AddNewItem(A5LZQueue, countCurr, RAind, RBind, RCind);
                     continue;
@@ -214,56 +207,56 @@ __device__ __host__  static bool IsValidKey(A5LogicalZonotopeQueue& A5LZQueue, c
         return true;
     }
 
-__device__ __host__ __inline__ static void ClkRegistersNew(A5LogicalZonotopeQueue& A5LZQueue, char clkCond, int& RAind, int& RBind, int& RCind) {
-        int FeedbackPoint;
+__device__ __host__ static void ClkRegistersNew(A5LogicalZonotopeQueue& A5LZQueue, char clkCond, int& RAind, int& RBind, int& RCind) {
+    uint8_t  FeedbackPoint;
         if (clkCond == 'A' || clkCond == 'B' || clkCond == 'C') {
-            if (A5LZQueue._tempRA[RAind + 13].Generator == 0 && A5LZQueue._tempRA[RAind + 16].Generator == 0 &&
-                A5LZQueue._tempRA[RAind + 17].Generator == 0 && A5LZQueue._tempRA[RAind + 18].Generator == 0) {
-                FeedbackPoint = A5LZQueue._tempRA[RAind + 13].Point ^ A5LZQueue._tempRA[RAind + 16].Point ^
-                    A5LZQueue._tempRA[RAind + 17].Point ^ A5LZQueue._tempRA[RAind + 18].Point;
+            if (A5LZQueue._tempRA[RAind + 13]!=2 && A5LZQueue._tempRA[RAind + 16]!=2 &&
+                A5LZQueue._tempRA[RAind + 17]!=2 && A5LZQueue._tempRA[RAind + 18]!=2) {
+                FeedbackPoint = A5LZQueue._tempRA[RAind + 13] ^ A5LZQueue._tempRA[RAind + 16] ^
+                    A5LZQueue._tempRA[RAind + 17] ^ A5LZQueue._tempRA[RAind + 18];
                 // std::copy( A5LZQueue._tempRA + 1,  A5LZQueue._tempRA + RAlength,  A5LZQueue._tempRA);
-                A5LZQueue._tempRA[RAind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                A5LZQueue._tempRA[RAind - 1] = FeedbackPoint;
             }
             else {
                 // std::copy( A5LZQueue._tempRA + 1,  A5LZQueue._tempRA + RAlength,  A5LZQueue._tempRA);
-                A5LZQueue._tempRA[RAind - 1] = uncertainPoint;
+                A5LZQueue._tempRA[RAind - 1] = 2;
             }
             RAind--;
         }
 
         if (clkCond == 'A' || clkCond == 'B' || clkCond == 'D') {
-            if (A5LZQueue._tempRB[RBind + 20].Generator == 0 && A5LZQueue._tempRB[RBind + 21].Generator == 0) {
-                FeedbackPoint = A5LZQueue._tempRB[RBind + 20].Point ^ A5LZQueue._tempRB[RBind + 21].Point;
+            if (A5LZQueue._tempRB[RBind + 20]!=2 && A5LZQueue._tempRB[RBind + 21]!=2) {
+                FeedbackPoint = A5LZQueue._tempRB[RBind + 20] ^ A5LZQueue._tempRB[RBind + 21];
                 // std::copy( A5LZQueue._tempRB + 1,  A5LZQueue._tempRB + RBlength,  A5LZQueue._tempRB);
-                A5LZQueue._tempRB[RBind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                A5LZQueue._tempRB[RBind - 1] = FeedbackPoint;
             }
             else {
                 // std::copy( A5LZQueue._tempRB + 1,  A5LZQueue._tempRB + RBlength,  A5LZQueue._tempRB);
-                A5LZQueue._tempRB[RBind - 1] = uncertainPoint;
+                A5LZQueue._tempRB[RBind - 1] = 2;
             }
             RBind--;
         }
 
         if (clkCond == 'A' || clkCond == 'C' || clkCond == 'D') {
-            if (A5LZQueue._tempRC[RCind + 7].Generator == 0 && A5LZQueue._tempRC[RCind + 20].Generator == 0 &&
-                A5LZQueue._tempRC[RCind + 21].Generator == 0 && A5LZQueue._tempRC[RCind + 22].Generator == 0) {
-                FeedbackPoint = A5LZQueue._tempRC[RCind + 7].Point ^ A5LZQueue._tempRC[RCind + 20].Point ^
-                    A5LZQueue._tempRC[RCind + 21].Point ^ A5LZQueue._tempRC[RCind + 22].Point;
+            if (A5LZQueue._tempRC[RCind + 7]!=2 && A5LZQueue._tempRC[RCind + 20]!=2 &&
+                A5LZQueue._tempRC[RCind + 21]!=2 && A5LZQueue._tempRC[RCind + 22]!=2) {
+                FeedbackPoint = A5LZQueue._tempRC[RCind + 7] ^ A5LZQueue._tempRC[RCind + 20] ^
+                    A5LZQueue._tempRC[RCind + 21] ^ A5LZQueue._tempRC[RCind + 22];
                 // std::copy( A5LZQueue._tempRC + 1,  A5LZQueue._tempRC + RClength,  A5LZQueue._tempRC);
-                A5LZQueue._tempRC[RCind - 1] = (FeedbackPoint == 1) ? oneCertainPoint : zeroCertainPoint;
+                A5LZQueue._tempRC[RCind - 1] = FeedbackPoint;
             }
             else {
                 // std::copy( A5LZQueue._tempRC + 1,  A5LZQueue._tempRC + RClength,  A5LZQueue._tempRC);
-                A5LZQueue._tempRC[RCind - 1] = uncertainPoint;
+                A5LZQueue._tempRC[RCind - 1] = 2;
             }
             RCind--;
         }
     }
 
 __device__ __host__ static void MajorityFunction(A5LogicalZonotopeQueue& A5LZQueue, int& RAind, int& RBind, int& RCind) {
-        LightLogicalZonotope _RA8 = A5LZQueue._tempRA[RAind + 8];
-        LightLogicalZonotope _RB10 = A5LZQueue._tempRB[RBind + 10];
-        LightLogicalZonotope _RC10 = A5LZQueue._tempRC[RCind + 10];
+        uint8_t _RA8 = A5LZQueue._tempRA[RAind + 8];
+        uint8_t _RB10 = A5LZQueue._tempRB[RBind + 10];
+        uint8_t _RC10 = A5LZQueue._tempRC[RCind + 10];
 
          A5LZQueue.clkCondA = false;
          A5LZQueue.clkCondB = false;
@@ -271,23 +264,23 @@ __device__ __host__ static void MajorityFunction(A5LogicalZonotopeQueue& A5LZQue
          A5LZQueue.clkCondD = false;
 
         // Check if RA9, RB11, RC11 generator property is empty or not
-        if (_RA8.Generator == 0 && _RB10.Generator == 0 && _RC10.Generator == 0) {
+        if (_RA8!=2 && _RB10!=2 && _RC10!=2) {
             // If empty, then check if RA9, RB11, RC11 points are equal or not
-            if (_RA8.Point == _RB10.Point && _RB10.Point == _RC10.Point) {
+            if (_RA8 == _RB10 && _RB10 == _RC10) {
                 A5LZQueue.clkCondA = true;
             }
-            else if (_RA8.Point == _RB10.Point) {
+            else if (_RA8 == _RB10) {
                 A5LZQueue.clkCondB = true;
             }
-            else if (_RA8.Point == _RC10.Point) {
+            else if (_RA8 == _RC10) {
                 A5LZQueue.clkCondC = true;
             }
-            else if (_RB10.Point == _RC10.Point) {
+            else if (_RB10 == _RC10) {
                 A5LZQueue.clkCondD = true;
             }
         }
-        else if (_RA8.Generator == 0 && _RB10.Generator == 0) {
-            if (_RA8.Point == _RB10.Point) {
+        else if (_RA8!=2 && _RB10!=2) {
+            if (_RA8 == _RB10) {
                 A5LZQueue.clkCondA = true;
                 A5LZQueue.clkCondB = true;
             }
@@ -296,8 +289,8 @@ __device__ __host__ static void MajorityFunction(A5LogicalZonotopeQueue& A5LZQue
                 A5LZQueue.clkCondD = true;
             }
         }
-        else if (_RA8.Generator == 0 && _RC10.Generator == 0) {
-            if (_RA8.Point == _RC10.Point) {
+        else if (_RA8!=2 && _RC10!=2) {
+            if (_RA8 == _RC10) {
                 A5LZQueue.clkCondA = true;
                 A5LZQueue.clkCondC = true;
             }
@@ -307,8 +300,8 @@ __device__ __host__ static void MajorityFunction(A5LogicalZonotopeQueue& A5LZQue
             }
         }
         // Check the RC11 and RB11 generators
-        else if (_RB10.Generator == 0 && _RC10.Generator == 0) {
-            if (_RB10.Point == _RC10.Point) {
+        else if (_RB10!=2 && _RC10!=2) {
+            if (_RB10 == _RC10) {
                 A5LZQueue.clkCondA = true;
                 A5LZQueue.clkCondD = true;
             }
@@ -349,32 +342,29 @@ static __device__ __host__  void AddNewItem(A5LogicalZonotopeQueue& A5LZQueue, i
 
 
 
-__device__ __host__ static void MajorityFunction(LightLogicalZonotope& RA8, LightLogicalZonotope& RB10, LightLogicalZonotope& RC10, bool(&clkCondArray)[4])
+__device__ __host__ static void MajorityFunction(uint8_t& RA8, uint8_t& RB10, uint8_t& RC10, bool(&clkCondArray)[4])
 {
-    clkCondArray[0] = false;
-    clkCondArray[1] = false;
-    clkCondArray[2] = false;
-    clkCondArray[3] = false;
+    clkCondArray[0] = false; clkCondArray[1] = false; clkCondArray[2] = false; clkCondArray[3] = false;
 
     // Check if RA9, RB11, RC11 generator property is empty or not
-    if (RA8.Generator == 0 && RB10.Generator == 0 && RC10.Generator == 0)
+    if (RA8!=2 && RB10!=2 && RC10!=2)
     {
         // If empty, then check if RA9, RB11, RC11 points are equal or not
-        if (RA8.Point == RB10.Point && RB10.Point == RC10.Point) {
+        if (RA8 == RB10&& RB10== RC10) {
             clkCondArray[0] = true;
         }
-        else if (RA8.Point == RB10.Point) {
+        else if (RA8== RB10) {
             clkCondArray[1] = true;
         }
-        else if (RA8.Point == RC10.Point) {
+        else if (RA8== RC10) {
             clkCondArray[2] = true;
         }
-        else if (RB10.Point == RC10.Point) {
+        else if (RB10== RC10) {
             clkCondArray[3] = true;
         }
     }
-    else if (RA8.Generator == 0 && RB10.Generator == 0) {
-        if (RA8.Point == RB10.Point) {
+    else if (RA8!=2 && RB10!=2) {
+        if (RA8== RB10) {
             clkCondArray[0] = true;
             clkCondArray[1] = true;
         }
@@ -383,8 +373,8 @@ __device__ __host__ static void MajorityFunction(LightLogicalZonotope& RA8, Ligh
             clkCondArray[3] = true;
         }
     }
-    else if (RA8.Generator == 0 && RC10.Generator == 0) {
-        if (RA8.Point == RC10.Point) {
+    else if (RA8!=2 && RC10!=2) {
+        if (RA8 == RC10) {
             clkCondArray[0] = true;
             clkCondArray[2] = true;
         }
@@ -394,8 +384,8 @@ __device__ __host__ static void MajorityFunction(LightLogicalZonotope& RA8, Ligh
         }
     }
     // Check the RC11 and RB11 generators
-    else if (RB10.Generator == 0 && RC10.Generator == 0) {
-        if (RB10.Point == RC10.Point) {
+    else if (RB10!=2 && RC10!=2) {
+        if (RB10 == RC10) {
             clkCondArray[0] = true;
             clkCondArray[3] = true;
         }
@@ -420,7 +410,7 @@ __device__ __host__ static void MajorityFunction(LightLogicalZonotope& RA8, Ligh
     //    for (int i = 0; i < _count; i++) {
     //        delete[] std::get<4>(_stack[i]);  // Free the bool array
     //    }
-    //    delete[]  A5LZQueue._tempRA;  // Free the LightLogicalZonotope arrays
+    //    delete[]  A5LZQueue._tempRA;  // Free the uint8_t arrays
     //    delete[]  A5LZQueue._tempRB;
     //    delete[]  A5LZQueue._tempRC;
     // 

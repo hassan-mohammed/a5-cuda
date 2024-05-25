@@ -20,33 +20,33 @@
 __device__   __constant__ int d_noAssumedBits = 5;
 
 
-static __device__  LightLogicalZonotope* GenerateLogicalZonotopeRegisterDevice(int length) {
+static __device__  uint8_t* GenerateLogicalZonotopeRegisterDevice(int length) {
 
-    LightLogicalZonotope* reg = new LightLogicalZonotope[length];
+    uint8_t* reg = new uint8_t[length];
 
     for (int i = 0; i < length; i++) {
-        reg[i] = LightLogicalZonotope{ 0, 1 };
+        reg[i] = 2;
     }
 
     return reg;
 }
 
-static  __device__  LightLogicalZonotope* GenerateLogicalZonotopeRegisterDevice(LightLogicalZonotope* reg, int length) {
+static  __device__  uint8_t* GenerateLogicalZonotopeRegisterDevice(uint8_t* reg, int length) {
     for (int i = 0; i < length; i++) {
-        reg[i] = LightLogicalZonotope{ 0, 1 };
+        reg[i] = 2;
     }
 
     return reg;
 }
 
-static  __device__  LightLogicalZonotope* GenerateLogicalZonotopeRegisterDevice(LightLogicalZonotope* reg, int length, LightLogicalZonotope* point) {
+static  __device__  uint8_t* GenerateLogicalZonotopeRegisterDevice(uint8_t* reg, int length, uint8_t* point) {
     for (int i = 0; i < length - d_noAssumedBits; i++) {
         reg[i] = *point;
     }
 
     return reg;
 }
-static __device__ void FillLastNBitsWithRowDevice(LightLogicalZonotope* reg, const int regLength, const LightLogicalZonotope* truthTableZonotope, int rowNo, int noBits) {
+static __device__ void FillLastNBitsWithRowDevice(uint8_t* reg, const int regLength, const uint8_t* truthTableZonotope, int rowNo, int noBits) {
     int startIndex = regLength - noBits;
 
     for (int i = 0; i < noBits - d_noAssumedBits; i++) {
@@ -91,13 +91,34 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
     }
     printf("}\n");
 }
+static __device__  void PrintRegistersDevice(const uint8_t  RA[], const uint8_t  RB[], const uint8_t  RC[], int count = 0) {
+    // Print RA
+    printf("RA = {             ");
+    for (int i = 0; i < RAlength; ++i) {
+            printf("%d, ", RA[i]);
+    }
+    printf("}\n");
+
+    // Print RB
+    printf("RB = {    ");
+    for (int i = 0; i < RBlength; ++i) {
+            printf("%d, ", RB[i]);
+    }
+    printf("}\n");
+
+    // Print RC
+    printf("RC = { ");
+    for (int i = 0; i < RClength; ++i) {
+            printf("%d, ", RC[i]);
+    }
+    printf("}\n");
+}
 
 
 
-
-//static LightLogicalZonotope* RA = Helper::GenerateLogicalZonotopeRegister(RAlength);
-//static LightLogicalZonotope* RB = Helper::GenerateLogicalZonotopeRegister(RBlength);
-//static LightLogicalZonotope* RC = Helper::GenerateLogicalZonotopeRegister(RClength);
+//static uint8_t* RA = Helper::GenerateLogicalZonotopeRegister(RAlength);
+//static uint8_t* RB = Helper::GenerateLogicalZonotopeRegister(RBlength);
+//static uint8_t* RC = Helper::GenerateLogicalZonotopeRegister(RClength);
 
 
 
@@ -106,18 +127,18 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
 
 
 //static int deepBitsTableLength;
-//static LightLogicalZonotope* threeBitsTruthTableZonotope;
-//static LightLogicalZonotope* sixBitsTruthTableZonotope;
-//static LightLogicalZonotope* deepTruthTableZonotope;
+//static uint8_t* threeBitsTruthTableZonotope;
+//static uint8_t* sixBitsTruthTableZonotope;
+//static uint8_t* deepTruthTableZonotope;
 //static int RAlastZTind, RBlastZTind, RClastZTind;
-//static LightLogicalZonotope tempPoint = LightLogicalZonotope{0, 1}; 
+//static uint8_t tempPoint = uint8_t{0, 1}; 
 //static int threeBitsTableLength = 8;
 //static int totalAssumedBits;
 //
 //static void InitializeStaticMembers();
-//static  bool A5RFBZT_12_DeepModeLoop_A5Loop(LightLogicalZonotope* RA, LightLogicalZonotope* RB, LightLogicalZonotope* RC, const std::string& indexText);
-//static void A5FullKey(LightLogicalZonotope* RAcurr, LightLogicalZonotope* RBcurr, LightLogicalZonotope* RCcurr, int initialRClastZTind, std::string indexText);
-//static void finalStep(LightLogicalZonotope* RAcurr, LightLogicalZonotope* RBcurr, LightLogicalZonotope* RCcurr, int initialRClastZTind);
+//static  bool A5RFBZT_12_DeepModeLoop_A5Loop(uint8_t* RA, uint8_t* RB, uint8_t* RC, const std::string& indexText);
+//static void A5FullKey(uint8_t* RAcurr, uint8_t* RBcurr, uint8_t* RCcurr, int initialRClastZTind, std::string indexText);
+//static void finalStep(uint8_t* RAcurr, uint8_t* RBcurr, uint8_t* RCcurr, int initialRClastZTind);
 //
 //
 //
@@ -146,7 +167,7 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
 //
 //       //    threads.emplace_back([mainIndex, RA, RB, RC, indexText]() {
 //
-//    static  bool A5RFBZT_12_DeepModeLoop_A5Loop(LightLogicalZonotope* RA, LightLogicalZonotope* RB, LightLogicalZonotope* RC, const std::string& indexText) {
+//    static  bool A5RFBZT_12_DeepModeLoop_A5Loop(uint8_t* RA, uint8_t* RB, uint8_t* RC, const std::string& indexText) {
 //        const int mainIndexLength = 64;  // Assuming sixBitsTableLength is 64
 //
 //        // Set up parallel options
@@ -168,9 +189,9 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
 //            bool isKeyFound = false;
 //
 //            // Create temporary copies of RA, RB, RC
-//            LightLogicalZonotope* tempRA = new LightLogicalZonotope[RAlength];
-//            LightLogicalZonotope* tempRB = new LightLogicalZonotope[RBlength];
-//            LightLogicalZonotope* tempRC = new LightLogicalZonotope[RClength];
+//            uint8_t* tempRA = new uint8_t[RAlength];
+//            uint8_t* tempRB = new uint8_t[RBlength];
+//            uint8_t* tempRC = new uint8_t[RClength];
 //
 //            // Copy values from RA, RB, RC to temporary arrays
 //            std::copy(RA, RA + RAlength, tempRA);
@@ -221,12 +242,12 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
 //        return false;
 //    }
 //
-//    static void A5FullKey(LightLogicalZonotope* RAcurr, LightLogicalZonotope* RBcurr, LightLogicalZonotope* RCcurr, int initialRClastZTind, std::string indexText) {
+//    static void A5FullKey(uint8_t* RAcurr, uint8_t* RBcurr, uint8_t* RCcurr, int initialRClastZTind, std::string indexText) {
 //        //A5PolyLogicalZonotope A5PolyZonotope(RAcurr, RBcurr, RCcurr);
 //        A5LogicalZonotopeQueue A5Zonotope(RAcurr, RBcurr, RCcurr);
-//        LightLogicalZonotope* tempRAKey = new LightLogicalZonotope[RAlength];
-//        LightLogicalZonotope* tempRBKey = new LightLogicalZonotope[RBlength];
-//        LightLogicalZonotope* tempRCKey = new LightLogicalZonotope[RClength];
+//        uint8_t* tempRAKey = new uint8_t[RAlength];
+//        uint8_t* tempRBKey = new uint8_t[RBlength];
+//        uint8_t* tempRCKey = new uint8_t[RClength];
 //
 //        int relativeIndex = initialRClastZTind;
 //        int lastIndex = relativeIndex - noSegmants * deepNoAssumedBits;
@@ -332,7 +353,7 @@ static __device__ void PrintRegistersDevice(const LightLogicalZonotope* RA, cons
 //        }
 //    }
 //   
-//    static void finalStep(LightLogicalZonotope* RAcurr, LightLogicalZonotope* RBcurr, LightLogicalZonotope* RCcurr, int initialRClastZTind)
+//    static void finalStep(uint8_t* RAcurr, uint8_t* RBcurr, uint8_t* RCcurr, int initialRClastZTind)
 //    {
 //        std::string outputString;
 //        A5LogicalZonotopeQueue A5Zonotope(RAcurr, RBcurr, RCcurr);
