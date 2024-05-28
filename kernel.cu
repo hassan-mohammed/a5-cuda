@@ -1,4 +1,4 @@
-﻿
+﻿#define MultiCard true 
 #include "cuda_runtime_api.h"
 #include <time.h>
 #include <iostream>
@@ -639,6 +639,10 @@ int main()
     /*******  Cuda work section *******/
 
     std::cout << " \n======== GPU Section: =========== " << std::endl;
+    int numDevices;
+    checkCudaErrors(cudaGetDeviceCount(&numDevices));
+
+    std::cout << "******* No of GPU Cards is: " << numDevices << " *******" << std::endl;
 
 
     uint8_t* d_threeBitsTruthTableZonotope = NULL;
@@ -646,9 +650,20 @@ int main()
     int* d_outStream = NULL;
     uint8_t* d_AssumedBitstruthTableZonotope = NULL;
     uint8_t* AssumedBitstruthTableZonotope = Helper::GetTruthTableZonotope(noAssumedBits);
-   
-    AllocateGPUMemory(d_outStream, d_AssumedBitstruthTableZonotope,
-        AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,
+
+    int partSize = validGuessVectorSize / 4;
+    int* d_VectorParts[4];
+    if (MultiCard)
+    {
+        for (size_t i = 0; i < numDevices; i++)
+        {
+            checkCudaErrors(cudaSetDevice(i));
+            checkCudaErrors(cudaMalloc((void**)&d_VectorParts[i], partSize * sizeof(int)));
+            checkCudaErrors(cudaMemcpy(d_VectorParts[i], validGuessVector + i * partSize, partSize * sizeof(int), cudaMemcpyHostToDevice));
+        }
+    }
+  
+    AllocateGPUMemory(d_outStream, d_AssumedBitstruthTableZonotope,AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,
         d_validGuessConBag, validGuessVectorSize, validGuessVector);
 
     /*******  Find valid combinations section *******/
@@ -678,14 +693,28 @@ int main()
     
     std::cout << "\n[GPU call] FindA5Key " << " Started  @  " << Helper::GetCurrentTime() << std::endl;
 
+    // Launch kernels on each GPU
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (partSize + threadsPerBlock - 1) / threadsPerBlock;
+
+    if (MultiCard)
+    {
+        for (int i = 0; i < 4; ++i) {
+            checkCudaErrors(cudaSetDevice(i));
+            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[i], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+        }
+    }
+    else
+    {
+        //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+        FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+        cudaDeviceSynchronize();
+        // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
+
+    }
 
 
-
-     //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-    FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,  d_outStream, count);
-    cudaDeviceSynchronize();
-    // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
-
+  
 
     std::cout << "\n[GPU call] FindA5Key " << " Finished  @  " << Helper::GetCurrentTime() << std::endl;
 
@@ -874,57 +903,38 @@ void FindValidCompinationsCPU(std::vector<int*>& validGuessConBag)
 void AllocateGPUMemory(int*& d_outStream, uint8_t*& d_AssumedBitstruthTableZonotope, uint8_t* AssumedBitstruthTableZonotope,
     uint8_t*& d_threeBitsTruthTableZonotope, int*& d_validGuessConBag, int validGuessVectorSize, int* validGuessVector)
 {
-    cudaError_t cuda_err;
+
     int assumedBitsTruthTblLen = static_cast<int>(std::pow(2, noAssumedBits)) * noAssumedBits;
     int threeBitsTruthTblLen = static_cast<int>(std::pow(2, 3)) * 3;
     uint8_t* threeBitsTruthTableZonotope = Helper::GetTruthTableZonotope(1 * 3);
 
+    checkCudaErrors(cudaMalloc((void**)&d_outStream, sizeof(int) * count));
+    checkCudaErrors(cudaMemcpy(d_outStream, outStream, sizeof(int) * count, cudaMemcpyHostToDevice));
+    
+    checkCudaErrors(cudaMalloc((void**)&d_AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen));
+    checkCudaErrors(cudaMemcpy(d_AssumedBitstruthTableZonotope, AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen, cudaMemcpyHostToDevice));
 
-    cuda_err = cudaMalloc((void**)&d_outStream, sizeof(int) * count);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Allocating the d_outStream.\n";
-    }
-    cuda_err = cudaMemcpy(d_outStream, outStream, sizeof(int) * count, cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Copying the d_outStream.\n";
-    }
+    checkCudaErrors(cudaMalloc((void**)&d_threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen));
+    checkCudaErrors(cudaMemcpy(d_threeBitsTruthTableZonotope, threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen, cudaMemcpyHostToDevice));
 
-    cuda_err = cudaMalloc((void**)&d_AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Allocating the d_AssumedBitstruthTableZonotope.\n";
-    }
-    cuda_err = cudaMemcpy(d_AssumedBitstruthTableZonotope, AssumedBitstruthTableZonotope, sizeof(uint8_t) * assumedBitsTruthTblLen, cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Copying the d_AssumedBitstruthTableZonotope.\n";
-    }
 
-    cuda_err = cudaMalloc((void**)&d_threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Allocating the d_threeBitsTruthTableZonotope.\n";
+    if (!MultiCard)
+    {
+
+        checkCudaErrors(cudaMalloc((void**)&d_validGuessConBag, validGuessVectorSize * sizeof(int)));
+        checkCudaErrors(cudaMemcpy(d_validGuessConBag, validGuessVector, validGuessVectorSize * sizeof(int), cudaMemcpyHostToDevice));
+
     }
 
-
-
-    cuda_err = cudaMalloc((void**)&d_validGuessConBag, validGuessVectorSize * sizeof(int) );
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Allocating the d_validGuessConBag.\n";
-    }
-
-
-    //// Copy the data to GPU
-    cuda_err = cudaMemcpy(d_threeBitsTruthTableZonotope, threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen, cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Copying the d_threeBitsTruthTableZonotope.\n";
-    }
-
-    cuda_err = cudaMemcpy(d_validGuessConBag, validGuessVector, validGuessVectorSize * sizeof(int) , cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-        std::cout << "Error Copying the d_validGuessConBag.\n";
-    }
 }
 
 
-
+void checkCudaErrors(cudaError_t err) {
+    if (err != cudaSuccess) {
+        std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
+        exit(err);
+    }
+}
 
 void DeviceProperties()
 {
