@@ -699,10 +699,10 @@ int main()
 
     if (MultiCard)
     {
-        for (int i = 0; i < 4; ++i) {
-            checkCudaErrors(cudaSetDevice(i));
-            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[i], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-        }
+            checkCudaErrors(cudaSetDevice(0));
+            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[0], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+            checkCudaErrors(cudaSetDevice(2));
+            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[0], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
     }
     else
     {
