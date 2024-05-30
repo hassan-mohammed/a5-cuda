@@ -1,5 +1,4 @@
-﻿#define MultiCard true 
-#include "cuda_runtime_api.h"
+﻿#include "cuda_runtime_api.h"
 #include <time.h>
 #include <iostream>
 #include <vector>
@@ -661,15 +660,16 @@ int main()
 
     int partSize = validGuessVectorSize / 4;
     int* d_VectorParts[4];
-    if (MultiCard)
+   /* if (MultiCard)
     {
         for (size_t i = 0; i < numDevices; i++)
         {
             checkCudaErrors(cudaSetDevice(i));
             checkCudaErrors(cudaMalloc((void**)&d_VectorParts[i], partSize * sizeof(int)));
             checkCudaErrors(cudaMemcpy(d_VectorParts[i], validGuessVector + i * partSize, partSize * sizeof(int), cudaMemcpyHostToDevice));
+
         }
-    }
+    }*/
   
     AllocateGPUMemory(d_outStream, d_AssumedBitstruthTableZonotope,AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope,
         d_validGuessConBag, validGuessVectorSize, validGuessVector);
@@ -705,20 +705,20 @@ int main()
     int threadsPerBlock = 256;
     int blocksPerGrid = (partSize + threadsPerBlock * 3 - 1) / (threadsPerBlock * 3);
 
-    if (MultiCard)
-    {
-        int i = 0;
+    //if (MultiCard)
+    //{
+         int i = 0;
             checkCudaErrors(cudaSetDevice(i));
-            FindA5Key << <14, 256 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-    }
-    else
-    {
-        //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-        FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-        cudaDeviceSynchronize();
-        // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
+            FindA5Key << <1, 1 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+    //}
+    //else
+    //{
+    //    //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+    //    FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
+    //    cudaDeviceSynchronize();
+    //    // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
 
-    }
+    //}
 
 
   
