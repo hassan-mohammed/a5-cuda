@@ -108,7 +108,7 @@ __global__ void  FindValidCompinationsGPU  (uint8_t* d_AssumedBitstruthTableZono
 
 
 __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t* __restrict__ AssumedBitstruthTableZonotope,
-    const uint8_t* __restrict__ threeBitsTruthTableZonotope, const int* __restrict__ d_outStream, int  d_count, int partSize)
+    const uint8_t* __restrict__ threeBitsTruthTableZonotope, const int* __restrict__ d_outStream, int  d_count)
 {
     // printf("\n ******** GPU FindA5Key Started 0 ******** \n");
 
@@ -116,10 +116,9 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
 
     int idx = 3 * itdx, jdx = 3 * itdx + 1, kdx = 3 * itdx + 2;
 
-    printf("\n ******** This is combination is i=%d  j=%d  k=%d ******** \n", i, j, k);
 
 
-    if (idx >= partSize || jdx >= partSize || kdx >= partSize) {
+    if (idx >= 10752 || jdx >= 10750 || kdx >= 10752) {
         printf("Thread %d: Index out of bounds (idx: %d, jdx: %d, kdx: %d)\n", itdx, idx, jdx, kdx);
 
         return;
@@ -127,6 +126,7 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
     int i = outResultVector[idx];
     int j = outResultVector[jdx];
     int k = outResultVector[kdx];
+    printf("\n ******** This is combination is i=%d  j=%d  k=%d ******** \n", i, j, k);
 
     uint8_t threeBitsLocal[3 * 8];
     for (size_t i = 0; i < 3*8; i++)
@@ -709,13 +709,13 @@ int main()
     {
         for (int i = 0; i < 4; ++i) {
             checkCudaErrors(cudaSetDevice(i));
-            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[i], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count, partSize);
+            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[i], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
         }
     }
     else
     {
         //FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-        FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count, validGuessVectorSize);
+        FindA5Key << <112, 128 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
         cudaDeviceSynchronize();
         // FindA5Key(validGuessConBag, AssumedBitstruthTableZonotope, threeBitsTruthTableZonotope);
 
