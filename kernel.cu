@@ -925,13 +925,13 @@ void AllocateGPUMemory(int*& d_outStream, uint8_t*& d_AssumedBitstruthTableZonot
     checkCudaErrors(cudaMemcpy(d_threeBitsTruthTableZonotope, threeBitsTruthTableZonotope, sizeof(uint8_t) * threeBitsTruthTblLen, cudaMemcpyHostToDevice));
 
 
-    if (!MultiCard)
-    {
+    //if (!MultiCard)
+    //{
 
         checkCudaErrors(cudaMalloc((void**)&d_validGuessConBag, validGuessVectorSize * sizeof(int)));
         checkCudaErrors(cudaMemcpy(d_validGuessConBag, validGuessVector, validGuessVectorSize * sizeof(int), cudaMemcpyHostToDevice));
 
-    }
+    //}
 
 }
 
