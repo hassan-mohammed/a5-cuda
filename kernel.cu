@@ -121,7 +121,7 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
     if (idx >= 10752 || jdx >= 10750 || kdx >= 10752) {
         printf("Thread %d: Index out of bounds (idx: %d, jdx: %d, kdx: %d)\n", itdx, idx, jdx, kdx);
 
-        return;
+       return;
     }
     int i = outResultVector[idx];
     int j = outResultVector[jdx];
@@ -707,10 +707,9 @@ int main()
 
     if (MultiCard)
     {
-        for (int i = 0; i < 4; ++i) {
+        int i = 0;
             checkCudaErrors(cudaSetDevice(i));
-            FindA5Key << <blocksPerGrid, threadsPerBlock >> > (d_VectorParts[i], d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
-        }
+            FindA5Key << <14, 256 >> > (d_validGuessConBag, d_AssumedBitstruthTableZonotope, d_threeBitsTruthTableZonotope, d_outStream, count);
     }
     else
     {
