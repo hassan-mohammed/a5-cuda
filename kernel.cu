@@ -115,6 +115,15 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
     int itdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     int idx = 3 * itdx, jdx = 3 * itdx + 1, kdx = 3 * itdx + 2;
+
+    printf("\n ******** This is combination is i=%d  j=%d  k=%d ******** \n", i, j, k);
+
+
+    if (idx >= partSize || jdx >= partSize || kdx >= partSize) {
+        printf("Thread %d: Index out of bounds (idx: %d, jdx: %d, kdx: %d)\n", itdx, idx, jdx, kdx);
+
+        return;
+    }
     int i = outResultVector[idx];
     int j = outResultVector[jdx];
     int k = outResultVector[kdx];
@@ -131,16 +140,10 @@ __global__ void FindA5Key(const int* __restrict__ outResultVector, const uint8_t
         return;
     }*/
 
-    if (idx >= partSize || jdx >= partSize || kdx >= partSize) {
-        printf("Thread %d: Index out of bounds (idx: %d, jdx: %d, kdx: %d)\n", itdx, idx, jdx, kdx);
-
-        return;
-    }
 
 
     // printf("\n ******** GPU FindA5Key Started 1 ******** \n");
 
-    printf("\n ******** This is combination is i=%d  j=%d  k=%d ******** \n", i,j, k);
 
  /*   if (i == 0 && j == 0)
     {
